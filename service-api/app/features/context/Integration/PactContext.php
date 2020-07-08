@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace BehatTest\Context\Integration;
 
+use App\Service\ActorCodes\ActorCodeService;
 use App\Service\Log\RequestTracing;
 use Aws\MockHandler as AwsMockHandler;
 use Behat\Behat\Hook\Scope\ScenarioScope;
 use Behat\Behat\Hook\Scope\StepScope;
 use Behat\Testwork\Hook\Scope\AfterTestScope;
 use BehatTest\Context\SetupEnv;
+use DateTime;
+use Fig\Http\Message\StatusCodeInterface;
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Psr7\Response;
 use JSHayes\FakeRequests\MockHandler;
 use Psr\Http\Message\ResponseInterface;
 use SmartGamma\Behat\PactExtension\Context\Authenticator;
@@ -20,11 +24,21 @@ use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequest
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
 use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\ProviderState;
+use Aws\Result;
+use App\Service\User\UserService;
 
 /**
  * Class PactContext
  *
  * @package BehatTest\Context\Integration
+ *
+ * @property $lpa
+ * @property $passcode
+ * @property $lpaUid
+ * @property $userDob
+ * @property $userId
+ * @property $actorLpaId
+ * @property $userLpaActorToken
  *
  */
 class PactContext extends BaseIntegrationContext implements PactContextInterface
@@ -142,6 +156,78 @@ class PactContext extends BaseIntegrationContext implements PactContextInterface
     }
 
     /**
+     * @Given /^I have been given access to use an LPA via credentials$/
+     * @Given /^I have added an LPA to my account$/
+     */
+    public function iHaveBeenGivenAccessToUseAnLPAViaCredentials()
+    {
+        $this->lpa = json_decode(file_get_contents(__DIR__ . '../../../../test/fixtures/example_lpa.json'));
+
+        $this->passcode = 'XYUPHWQRECHV';
+        $this->lpaUid = '700000000054';
+        $this->userDob = '1975-10-05';
+        $this->actorLpaId = 9;
+        $this->userId = '9999999999';
+        $this->userLpaActorToken = '111222333444';
+    }
+
+    /**
+     * @Given I am a user of the lpa application
+     */
+    public function iAmAUserOfTheLpaApplication()
+    {
+        $this->userAccountId = '123456789';
+        $this->userAccountEmail = 'test@example.com';
+        $this->userAccountPassword = 'pa33w0rd';
+    }
+
+    /**
+     * @Given I am currently signed in
+     */
+    public function iAmCurrentlySignedIn()
+    {
+        $this->password = 'pa33w0rd';
+        $this->userAccountPassword = 'n3wPassWord';
+
+        // ActorUsers::getByEmail
+        $this->awsFixtures->append(new Result([
+            'Items' => [
+                $this->marshalAwsResultData([
+                    'Id'       => $this->userAccountId,
+                    'Email'    => $this->userAccountEmail,
+                    'Password' => password_hash($this->password, PASSWORD_DEFAULT),
+                    'LastLogin'=> null
+                ])
+            ]
+        ]));
+
+        // ActorUsers::recordSuccessfulLogin
+        $this->awsFixtures->append(new Result([
+            'Items' => [
+                $this->marshalAwsResultData([
+                    'Id'        => $this->userAccountId,
+                    'LastLogin' => null
+                ])
+            ]
+        ]));
+
+        $us = $this->container->get(UserService::class);
+
+        $user = $us->authenticate($this->userAccountEmail, $this->password);
+
+        assertEquals($this->userAccountId, $user['Id']);
+        assertEquals($this->userAccountEmail, $user['Email']);
+    }
+
+    /**
+     * @Given /^I am on the add an LPA page$/
+     */
+    public function iAmOnTheAddAnLPAPage()
+    {
+        // Not used in this context
+    }
+
+    /**
      * @When /^I request the status of the API HealthCheck EndPoint$/
      */
     public function iRequestTheStatusOfTheAPIHealthCheck()
@@ -200,13 +286,26 @@ class PactContext extends BaseIntegrationContext implements PactContextInterface
             'POST',
             $headers
         );
+
     }
 
     /**
-     * @Then /^I should be told my code is valid$/
+     * @When /^I request to add an LPA with valid details$/
      */
-    public function iShouldBeToldMyCodeIsValid()
+    public function iRequestToAddAnLPAWithValidDetails()
     {
+        $this->uri = '/v1/validate';
+
+        $headers = $this->getHeaders($this->providerName);
+
+        $this->consumerRequest[$this->providerName] = new InteractionRequestDTO(
+            $this->providerName,
+            $this->stepName,
+            $this->uri,
+            'POST',
+            $headers
+        );
+
         if (!isset($this->consumerRequest[$this->providerName])) {
             throw new NoConsumerRequestDefined(
                 'No consumer InteractionRequestDTO defined.'
@@ -221,10 +320,8 @@ class PactContext extends BaseIntegrationContext implements PactContextInterface
 
         // Matcher provided by SmartGamma\Behat\PactExtension\Infrastructure\Interaction\MatcherInterface
         $response = [
-            'actor' => [
-                'value' => 'a95a0543-6e9e-4fd5-9c77-94eb1a8f4da6',
-                'match' => 'uuid'
-            ]
+            'actor' => 'a95a0543-6e9e-4fd5-9c77-94eb1a8f4da6',
+
         ];
 
         $response      = new InteractionResponseDTO(200, $parameters, $response);
@@ -244,6 +341,113 @@ class PactContext extends BaseIntegrationContext implements PactContextInterface
         ]);
 
         $body = $this->response->getBody()->getContents();
+
+        $this->apiFixtures->get('/v1/use-an-lpa/lpas/' . $this->lpaUid)
+            ->respondWith(
+                new Response(
+                    StatusCodeInterface::STATUS_OK,
+                    [],
+                    json_encode($this->lpa)
+                )
+            );
+
+        // this is now called twice
+        $this->apiFixtures->get('/v1/use-an-lpa/lpas/' . $this->lpaUid)
+            ->respondWith(
+                new Response(
+                    StatusCodeInterface::STATUS_OK,
+                    [],
+                    json_encode($this->lpa)
+                )
+            );
+
+        $actorCodeService = $this->container->get(ActorCodeService::class);
+       // $actorCodeService->confirmDetails($this->passcode, $this->lpaUid, $this->userDob, (string) $this->actorLpaId);
+    }
+
+    /**
+     * @Then /^The correct LPA is found and I can confirm to add it$/
+     */
+    public function theCorrectLPAIsFoundAndICanConfirmToAddIt()
+    {
+        // not needed for this context
+    }
+
+    /**
+     * @Given /^The LPA is successfully added$/
+     */
+    public function theLPAIsSuccessfullyAdded()
+    {
+        $now = (new DateTime)->format('Y-m-d\TH:i:s.u\Z');
+        $this->userLpaActorToken = '13579';
+
+        //validateCode
+        // $this->iRequestToAddAnLPAWithValidDetails();
+
+        // UserLpaActorMap::create
+//        $this->awsFixtures->append(new Result([
+//            'Item' => [
+//                $this->marshalAwsResultData([
+//                    'Id'        => '13579',
+//                    'UserId'    => $this->userId,
+//                    'SiriusUid' => $this->lpaUid,
+//                    'ActorId'   => $this->actorLpaId,
+//                    'Added'     => $now,
+//                ])
+//            ]
+//        ]));
+
+        //flagCodeAsUsed
+        $this->uri = '/v1/revoke';
+
+        $headers = $this->getHeaders($this->providerName);
+
+        $this->consumerRequest[$this->providerName] = new InteractionRequestDTO(
+            $this->providerName,
+            $this->stepName,
+            $this->uri,
+            'POST',
+            $headers
+        );
+
+        if (!isset($this->consumerRequest[$this->providerName])) {
+            throw new NoConsumerRequestDefined(
+                'No consumer InteractionRequestDTO defined.'
+            );
+        }
+
+        $parameters = [
+            'actor' => [
+                'value' => 'a95a0543-6e9e-4fd5-9c77-94eb1a8f4da6'
+            ]
+        ];
+
+        // Matcher provided by SmartGamma\Behat\PactExtension\Infrastructure\Interaction\MatcherInterface
+        $response = [
+            ["codes revoked" => 1],
+            200
+        ];
+
+        $response      = new InteractionResponseDTO(200, $parameters, $response);
+        $request       = $this->consumerRequest[$this->providerName];
+        $providerState = $this->providerState->getStateDescription($this->providerName);
+        unset($this->consumerRequest[$this->providerName]);
+
+        $this->pact->registerInteraction($request, $response, $providerState);
+
+        $this->httpClient->post($this->baseUrl . $this->uri, [
+            'json'     => [
+                'code' => 'YSSU4IAZTUXM'
+            ],
+            'headers'  => ['Content-Type' => 'application/json']
+        ]);
+
+        $actorCodeService = $this->container->get(ActorCodeService::class);
+//        try {
+//            $response = $actorCodeService->confirmDetails($this->passcode, $this->lpaUid, $this->userDob, (string) $this->actorLpaId);
+//        } catch (Exception $ex) {
+//            throw new Exception('Lpa confirmation unsuccessful');
+//        }
     }
 
     /**

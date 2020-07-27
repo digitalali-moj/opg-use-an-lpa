@@ -310,14 +310,13 @@ class UserLpaActorMapTest extends TestCase
             $this->assertArrayHasKey('TableName', $data);
             $this->assertEquals(self::TABLE_NAME, $data['TableName']);
 
-            //---
+            $this->assertArrayHasKey('FilterExpression', $data);
+            $this->assertArrayHasKey('ExpressionAttributeValues', $data);
 
-//            $this->assertArrayHasKey('FilterExpression', $data);
-            //$this->assertArrayHasKey('KeyConditionExpression', $data);
-            //$this->assertArrayHasKey('ExpressionAttributeValues', $data);
-
-//            $this->assertArrayHasKey(':user_id', $data['ExpressionAttributeValues']);
-//            $this->assertEquals(['S' => $testUserId], $data['ExpressionAttributeValues'][':user_id']);
+            $this->assertArrayHasKey(':from', $data['ExpressionAttributeValues']);
+            $this->assertArrayHasKey(':to', $data['ExpressionAttributeValues']);
+            $this->assertEquals(['S' => $from], $data['ExpressionAttributeValues'][':from']);
+            $this->assertEquals(['S' => $to], $data['ExpressionAttributeValues'][':to']);
 
             return true;
         }))->willReturn(

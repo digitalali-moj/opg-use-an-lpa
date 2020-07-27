@@ -299,10 +299,50 @@ class UserLpaActorMapTest extends TestCase
     /** @test */
     public function can_get_lpas_for_dates()
     {
-        $repo = new UserLpaActorMap($this->dynamoDbClientProphecy->reveal(), self::TABLE_NAME);
-
+        $testToken = 'test-token';
+        $testSiriusUid = 'test-uid';
+        $testUserId = 'test-user-id';
+        $testActorId = 1;
+        $testAdded = gmdate('c');
         $from = new DateTime("2019-01-01");
         $to = new DateTime("2020-07-07");
+        $this->dynamoDbClientProphecy->scan(Argument::that(function(array $data) use ($from, $to) {
+            $this->assertArrayHasKey('TableName', $data);
+            $this->assertEquals(self::TABLE_NAME, $data['TableName']);
+
+            //---
+
+//            $this->assertArrayHasKey('FilterExpression', $data);
+            //$this->assertArrayHasKey('KeyConditionExpression', $data);
+            //$this->assertArrayHasKey('ExpressionAttributeValues', $data);
+
+//            $this->assertArrayHasKey(':user_id', $data['ExpressionAttributeValues']);
+//            $this->assertEquals(['S' => $testUserId], $data['ExpressionAttributeValues'][':user_id']);
+
+            return true;
+        }))->willReturn(
+            $this->createAWSResult(['Items'=>[
+                [
+                    'Id' => [
+                        'S' => $testToken,
+                    ],
+                    'SiriusUid' => [
+                        'S' => $testSiriusUid,
+                    ],
+                    'UserId' => [
+                        'S' => $testUserId,
+                    ],
+                    'ActorId' => [
+                        'N' => $testActorId,
+                    ],
+                    'Added' => [
+                        'S' => $testAdded,
+                    ],
+                ]
+            ]])
+        )->shouldBeCalled();
+        $repo = new UserLpaActorMap($this->dynamoDbClientProphecy->reveal(), self::TABLE_NAME);
+
         $results = $repo->getLpasAddedBetweenDates($from,$to);
 
         assertNotNull($results);

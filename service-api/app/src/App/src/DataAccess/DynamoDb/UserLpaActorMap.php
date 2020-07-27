@@ -115,4 +115,27 @@ class UserLpaActorMap implements UserLpaActorMapInterface
 
         return $this->getDataCollection($result, ['Added']);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLpasAddedBetweenDates(DateTime $fromDate, DateTime $toDate): ?array
+    {
+        $result = $this->client->scan([
+            'TableName' => $this->userLpaActorTable,
+            'FilterExpression' => 'Added BETWEEN :from AND :to',
+            'ExpressionAttributeValues' => [
+                ':from' => [
+                    'S' => $fromDate,
+                ],
+                ':to' => [
+                    'S' => $toDate,
+                ],
+            ]
+        ]);
+
+        if (isNull($result)) return null; else {
+            return $this->getDataCollection($result, ['Added']);
+        }
+    }
 }

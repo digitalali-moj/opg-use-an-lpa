@@ -295,4 +295,16 @@ class UserLpaActorMapTest extends TestCase
         $this->assertInstanceOf(DateTime::class, $item['Added']);
         $this->assertEquals($testAdded, $item['Added']->format('c'));
     }
+
+    /** @test */
+    public function can_get_lpas_for_dates()
+    {
+        $repo = new UserLpaActorMap($this->dynamoDbClientProphecy->reveal(), self::TABLE_NAME);
+
+        $from = new DateTime("2019-01-01");
+        $to = new DateTime("2020-07-07");
+        $results = $repo->getLpasAddedBetweenDates($from,$to);
+
+        assertNotNull($results);
+    }
 }

@@ -134,8 +134,6 @@ class UserLpaActorMap implements UserLpaActorMapInterface
             ]
         ]);
 
-        if (isNull($result)) return null; else {
-            return $this->getDataCollection($result, ['Added']);
-        }
+        return $this->getDataCollection($result, ['Added']);
     }
 }

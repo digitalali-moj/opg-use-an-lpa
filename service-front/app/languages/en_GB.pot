@@ -89,22 +89,37 @@ msgstr ""
 msgid "Terms of use"
 msgstr ""
 
-msgid "The Use a lasting power of attorney (LPA) service lets donors and attorneys share a summary of an <abbr title="lasting power of attorney">LPA</abbr> with professionals or organisations by creating a unique ‘access code’."
+msgid "The Use a lasting power of attorney (LPA) service lets donors and attorneys share a summary of an"
 msgstr ""
 
-msgid "View a lasting power of attorney is the part of this service that lets you see a summary of an <abbr title="lasting power of attorney">LPA</abbr>, using the access code given to you by the donor or an attorney."
+msgid "with professionals or organisations by creating a unique ‘access code’."
+msgstr ""
+
+msgid "View a lasting power of attorney is the part of this service that lets you see a summary of an"
+msgstr ""
+
+msgid "using the access code given to you by the donor or an attorney."
 msgstr ""
 
 msgid "This part of the service is for professionals or organisations providing a service to the donor. For example, financial institutions, medical professionals, and care organisations."
 msgstr ""
 
-msgid "You can use this service instead of asking to see the original paper <abbr title="lasting power of attorney">LPA</abbr>."
+msgid "You can use this service instead of asking to see the original paper"
+msgstr ""
+
+msgid "lasting power of attorney"
+msgstr ""
+
+msgid "LPA"
 msgstr ""
 
 msgid "By using this service you:"
 msgstr ""
 
-msgid "agree to these terms of use and the <a class="govuk-link" href="https://www.gov.uk/help/terms-conditions">GOV.UK terms and conditions"
+msgid "agree to these terms of use and the"
+msgstr ""
+
+msgid "GOV.UK terms and conditions"
 msgstr ""
 
 msgid "confirm that a donor or attorney wants you to view the <abbr title="lasting power of attorney">LPA</abbr> and has given you an access code"

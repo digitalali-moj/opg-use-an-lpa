@@ -400,6 +400,9 @@ msgstr ""
 "unrhyw newidiadau os byddwch yn parhau i ddefnyddio’r gwasanaeth ar ôl i’r "
 "telerau defnyddio gael eu diweddaru"
 
+#~ msgid " LPA"
+#~ msgstr " ACLI"
+
 #~ msgid ""
 #~ "View a lasting power of attorney is the part of this service that lets "
 #~ "you see a summary of an <abbr title=\"lasting power of attorney\">LPA</"

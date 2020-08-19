@@ -182,13 +182,13 @@ msgstr ""
 msgid "The online summary"
 msgstr ""
 
-msgid "Any screenshots, downloads or printouts of the "
+msgid "Any screenshots, downloads or printouts of the"
 msgstr ""
 
 msgid "summary are not proof of an"
 msgstr ""
 
-msgid "and may not show the latest status of an "
+msgid "and may not show the latest status of an"
 msgstr ""
 
 msgid "Tracking use of the service"
@@ -200,7 +200,7 @@ msgstr ""
 msgid "This information is available to the donor and attorneys."
 msgstr ""
 
-msgid "The information will be stored securely and used in line with our "
+msgid "The information will be stored securely and used in line with our"
 msgstr ""
 
 msgid "privacy notice"
@@ -228,7 +228,7 @@ msgstr ""
 msgid "contact the police"
 msgstr ""
 
-msgid "first."
+msgid "first"
 msgstr ""
 
 msgid "Governing law"
